@@ -44,32 +44,51 @@ logger = logging.getLogger(__name__)
 class SARAnalyzer:
     """A class for fetching and analyzing SAR data from Copernicus."""
     
-    def __init__(self, username: Optional[str] = None, password: Optional[str] = None):
+    def __init__(self, username: Optional[str] = None, password: Optional[str] = None, 
+                 client_id: Optional[str] = None, client_secret: Optional[str] = None):
         self.username = username
         self.password = password
+        self.client_id = client_id
+        self.client_secret = client_secret
         self.api: Optional[SentinelAPI] = None
         self.products: Optional[Dict] = None
         self.download_path = Path.cwd() / 'data'
         self.download_path.mkdir(exist_ok=True)
         
     def authenticate(self, api_url: str = 'https://apihub.copernicus.eu/apihub') -> bool:
-        """Authenticate with the Copernicus Data Space Ecosystem."""
+        """Authenticate with the Copernicus Data Space Ecosystem or Open Access Hub."""
         try:
-            if not self.username:
-                self.username = input("Enter your Copernicus username: ")
-            if not self.password:
-                self.password = getpass("Enter your Copernicus password: ")
-            
-            logger.info(f"Attempting to authenticate with {api_url}")
-            self.api = SentinelAPI(
-                self.username, 
-                self.password, 
-                api_url
-            )
+            # Check if we're using the new CDSE API
+            if 'dataspace.copernicus.eu' in api_url or 'catalogue.dataspace.copernicus.eu' in api_url:
+                if not self.client_id:
+                    self.client_id = input("Enter your Copernicus Data Space client ID: ")
+                if not self.client_secret:
+                    self.client_secret = getpass("Enter your Copernicus Data Space client secret: ")
+                
+                logger.info(f"Attempting to authenticate with CDSE at {api_url}")
+                # For CDSE, we use the client_id as username and client_secret as password
+                self.api = SentinelAPI(
+                    self.client_id,
+                    self.client_secret,
+                    api_url
+                )
+            else:
+                # Traditional username/password for older APIs
+                if not self.username:
+                    self.username = input("Enter your Copernicus username: ")
+                if not self.password:
+                    self.password = getpass("Enter your Copernicus password: ")
+                
+                logger.info(f"Attempting to authenticate with {api_url}")
+                self.api = SentinelAPI(
+                    self.username, 
+                    self.password, 
+                    api_url
+                )
             return True
         except Exception as e:
             logger.error(f"Authentication failed: {e}")
-            logger.info("Note: You need to register at https://dataspace.copernicus.eu/ to access Sentinel data")
+            logger.info("Note: For the new Copernicus Data Space Ecosystem, you need to register at https://dataspace.copernicus.eu/ and create API credentials")
             return False
     
     def create_aoi_from_coordinates(self, min_lon: float, min_lat: float, max_lon: float, max_lat: float) -> str:
