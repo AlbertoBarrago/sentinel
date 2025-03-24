@@ -15,26 +15,13 @@ Requirements:
     - numpy
     - matplotlib
     - scipy
+
+Author: Alberto Barrago
+Date: 2025-05-24
 """
 
-from typing import Optional, Dict, List, Tuple, Any
-import os
-import sys
 import datetime
 import logging
-from pathlib import Path
-import numpy as np
-import matplotlib.pyplot as plt
-from sentinelsat import SentinelAPI, read_geojson, geojson_to_wkt
-from datetime import date
-import rasterio
-from rasterio.errors import RasterioIOError
-from rasterio.plot import show
-from scipy import signal, ndimage
-from shapely.geometry import box
-import geopandas as gpd
-from getpass import getpass
-import requests
 from sentinel_sar.analyzer import SARAnalyzer
 
 logging.basicConfig(
