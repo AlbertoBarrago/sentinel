@@ -72,7 +72,33 @@ def main():
     # Process the downloaded files
     for file_path in downloaded_files:
         logger.info(f"Processing {file_path}...")
-        # Continue with your analysis...
+        
+        # Process the file based on data source
+        processed_file = analyzer.process_sentinel1_data(file_path)
+        
+        if processed_file:
+            # Preprocess the data
+            processed_data = analyzer.preprocess_sar_data(processed_file)
+            
+            if processed_data is not None:
+                # Detect subsurface features
+                features = analyzer.detect_subsurface_features(processed_data)
+                
+                if features is not None:
+                    # Visualize the results
+                    try:
+                        import rasterio
+                        with rasterio.open(processed_file) as src:
+                            original_data = src.read(1)
+                        analyzer.visualize_results(
+                            original_data, 
+                            processed_data, 
+                            features,
+                            title="Sentinel-1 SAR Analysis Results"
+                        )
+                        logger.info("Analysis completed successfully!")
+                    except Exception as e:
+                        logger.error(f"Error visualizing results: {e}")
 
 if __name__ == "__main__":
     main()
