@@ -2,6 +2,8 @@
 """
 Sentinel SAR Data Analysis Tool
 
+Disclaimer: Work in progress...
+
 This script fetches and analyzes Synthetic Aperture Radar (SAR) data from Copernicus
 using the sentinelsat library. It allows for data acquisition based on coordinates,
 processing the imagery using rasterio, and applying signal processing techniques
