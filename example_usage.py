@@ -8,6 +8,12 @@ SAR data for a specific area of interest.
 
 from sentinel_sar_analysis import SARAnalyzer
 import logging
+import os
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
 
 # Configure logging
 logging.basicConfig(
@@ -18,14 +24,14 @@ logger = logging.getLogger(__name__)
 
 def main():
     # Create an instance of the SARAnalyzer with CDSE credentials
-    client_id = "ee3c113d-682c-47d3-9fdd-f0640c1faba5"
-    client_secret = "ac067c4b-2f85-4c1f-8c66-99e0eebdc4a8"
+    client_id = os.getenv("CLIENT_ID")
+    client_secret = os.getenv("CLIENT_SECRET")
     
     # Try using the traditional API endpoint first
     analyzer = SARAnalyzer(username=client_id, password=client_secret)
     
     # Try to authenticate with the traditional API endpoint
-    if not analyzer.authenticate(api_url='https://apihub.copernicus.eu/apihub'):
+    if not analyzer.authenticate(api_url=os.getenv('API_URL') or 'https://apihub.copernicus.eu/apihub'):
         logger.error("Authentication failed with traditional endpoint. Trying CDSE endpoint...")
         
         # Try with the CDSE endpoint
