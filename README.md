@@ -86,7 +86,8 @@ The default coordinates are set to the Giza Plateau in Egypt, which is known for
 
 ## Notes
 
-- You need a registered account at the [Copernicus Open Access Hub](https://scihub.copernicus.eu/)
+- You need if use COSMO-SkyMed satellite data [COSMO-SkyMed](https://registration.cosmo-skymed.it/UMUsers/UserRegistration.html)
+- You need a registered account at the [Copernicus Open Access Hub](https://dataspace.copernicus.eu/)
 - The script downloads SAR data which can be large files (several GB)
 - Processing SAR data is computationally intensive and may take time depending on your hardware
 - The results are saved in a 'data' directory created in the current working directory
