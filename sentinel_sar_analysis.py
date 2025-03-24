@@ -31,12 +31,10 @@ import rasterio
 from rasterio.errors import RasterioIOError
 from rasterio.plot import show
 from scipy import signal, ndimage
-import json
 from shapely.geometry import box
 import geopandas as gpd
 from getpass import getpass
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -204,15 +202,6 @@ class SARAnalyzer:
         except Exception as e:
             logger.error(f"Error processing Sentinel-1 data: {e}")
             return None
-
-    # Rest of the methods remain largely the same but with:
-    # - Added type hints
-    # - Better error handling
-    # - Use of pathlib instead of os.path
-    # - Logging instead of print statements
-    # - More robust input validation
-    # - Better memory management for large datasets
-    # - Cleaner code organization
 
     def analyze_area(
         self,
