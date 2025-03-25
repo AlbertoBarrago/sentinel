@@ -80,7 +80,6 @@ cd sentinel-sar-analysis
    ```
    CLIENT_ID=your_copernicus_client_id
    CLIENT_SECRET=your_copernicus_client_secret
-   API_URL=https://catalogue.dataspace.copernicus.eu/api/hub
    ```
    
    This step is optional but recommended if you plan to use the example script.
