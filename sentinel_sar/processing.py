@@ -3,21 +3,18 @@ Processing functions for SAR data.
 """
 
 import os
-import sys
 import datetime
 import logging
-from pathlib import Path
 import numpy as np
 from sentinelsat import read_geojson, geojson_to_wkt
-from datetime import date
 import rasterio
 from rasterio.errors import RasterioIOError
-from scipy import signal, ndimage
+from scipy import ndimage
 from shapely.geometry import box
 import geopandas as gpd
 import requests
 import traceback
-from typing import Optional, Dict, List, Tuple, Any
+from typing import Optional, Dict, List
 
 logger = logging.getLogger(__name__)
 

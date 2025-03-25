@@ -3,7 +3,6 @@ Authentication functions for Sentinel and COSMO-SkyMed APIs.
 """
 
 import logging
-from getpass import getpass
 import requests
 from sentinelsat import SentinelAPI
 import os
