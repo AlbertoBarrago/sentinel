@@ -2,12 +2,11 @@
 Main SARAnalyzer class that coordinates all SAR data operations.
 """
 
-from typing import Optional, Dict, List, Tuple, Any
-import os
+from typing import Optional, Dict, List, Any
 import logging
 from pathlib import Path
 
-from sentinel_sar.auth import authenticate, authenticate_cosmo
+from sentinel_sar.auth import authenticate_copernicus, authenticate_cosmo
 from sentinel_sar.processing import (
     create_aoi_from_coordinates,
     search_sar_data,
@@ -43,7 +42,7 @@ class SARAnalyzer:
     
     def authenticate(self, api_url: str = 'https://apihub.copernicus.eu/apihub') -> bool:
         """Authenticate with the Copernicus Data Space Ecosystem or Open Access Hub."""
-        return authenticate(self, api_url)
+        return authenticate_copernicus(self, api_url)
     
     def authenticate_cosmo(self, api_url: str = 'https://api.registration.cosmo-skymed.it/auth/login') -> bool:
         """Authenticate with the COSMO-SkyMed data portal."""

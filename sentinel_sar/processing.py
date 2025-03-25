@@ -74,11 +74,11 @@ def search_sar_data(analyzer, footprint: str, start_date: str, end_date: str, pl
         logger.debug(f"Detailed error: {traceback.format_exc()}")
         
         # Add connection troubleshooting information
-        logger.info("Connection troubleshooting:")
-        logger.info("1. Check your internet connection")
-        logger.info("2. Verify that the Copernicus Open Access Hub is accessible (https://scihub.copernicus.eu/dhus/)")
-        logger.info("3. Ensure your credentials are correct")
-        logger.info("4. The service might be temporarily unavailable or under maintenance")
+        # logger.info("Connection troubleshooting:")
+        # logger.info("1. Check your internet connection")
+        # logger.info("2. Verify that the Copernicus Open Access Hub is accessible (https://scihub.copernicus.eu/dhus/)")
+        # logger.info("3. Ensure your credentials are correct")
+        # logger.info("4. The service might be temporarily unavailable or under maintenance")
         
         return {}
 
@@ -138,11 +138,11 @@ def search_cosmo_data(analyzer, footprint: str, start_date: str, end_date: str) 
         logger.debug(f"Detailed error: {traceback.format_exc()}")
         
         # Add connection troubleshooting information
-        logger.info("Connection troubleshooting:")
-        logger.info("1. Check your internet connection")
-        logger.info("2. Verify that the COSMO-SkyMed API is accessible")
-        logger.info("3. Ensure your credentials are correct")
-        logger.info("4. The service might be temporarily unavailable or under maintenance")
+        # logger.info("Connection troubleshooting:")
+        # logger.info("1. Check your internet connection")
+        # logger.info("2. Verify that the COSMO-SkyMed API is accessible")
+        # logger.info("3. Ensure your credentials are correct")
+        # logger.info("4. The service might be temporarily unavailable or under maintenance")
         
         return {}
 

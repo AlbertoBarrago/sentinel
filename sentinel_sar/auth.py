@@ -6,10 +6,14 @@ import logging
 from getpass import getpass
 import requests
 from sentinelsat import SentinelAPI
+import os
+from dotenv import load_dotenv
 
+
+load_dotenv()
 logger = logging.getLogger(__name__)
 
-def authenticate(analyzer, api_url: str = 'https://apihub.copernicus.eu/apihub') -> bool:
+def authenticate_copernicus(analyzer, api_url: str = os.getenv('COPERNICUS_API_URL') or 'https://apihub.copernicus.eu/apihub') -> bool:
     """Authenticate with the Copernicus Data Space Ecosystem or Open Access Hub."""
     try:
         # Check if we're using the new CDSE API
@@ -45,7 +49,7 @@ def authenticate(analyzer, api_url: str = 'https://apihub.copernicus.eu/apihub')
         logger.info("Note: For the new Copernicus Data Space Ecosystem, you need to register at https://dataspace.copernicus.eu/ and create API credentials")
         return False
 
-def authenticate_cosmo(analyzer, api_url: str = 'https://api.registration.cosmo-skymed.it/auth/login') -> bool:
+def authenticate_cosmo(analyzer, api_url: str = os.getenv('COSMO_API_URL') or 'https://api.registration.cosmo-skymed.it/auth/login') -> bool:
     """Authenticate with the COSMO-SkyMed data portal."""
     try:
         if not analyzer.cosmo_username:
