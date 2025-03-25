@@ -58,8 +58,8 @@ def main():
         start_date = input(f"Start date [{one_year_ago.strftime('%Y%m%d')}]: ") or one_year_ago.strftime('%Y%m%d')
         end_date = input(f"End date [{today.strftime('%Y%m%d')}]: ") or today.strftime('%Y%m%d')
         
-        # Ask for a data source
-        data_source = input("Data source (sentinel/cosmo) [sentinel]: ").lower() or "sentinel"
+        # Only Sentinel data is supported
+        data_source = "sentinel"
         
         logger.info("\nStarting analysis...")
         if analyzer.analyze_area(

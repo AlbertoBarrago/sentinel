@@ -1,11 +1,11 @@
 # Sentinel SAR Analysis Tool
 
-A Python tool for fetching and analyzing Synthetic Aperture Radar (SAR) data from multiple sources including Copernicus Sentinel-1 and COSMO-SkyMed satellites. This tool allows for data acquisition based on coordinates, processing the imagery, and applying signal processing techniques to detect subsurface anomalies.
+A Python tool for fetching and analyzing Synthetic Aperture Radar (SAR) data from Copernicus Sentinel-1. This tool allows for data acquisition based on coordinates, processing the imagery, and applying signal processing techniques to detect subsurface anomalies.
 
 ## Features
 
 - Fetch SAR data from Copernicus Open Access Hub or Copernicus Data Space Ecosystem
-- Support for COSMO-SkyMed satellite data
+
 - Define areas of interest using geographic coordinates
 - Download and process SAR imagery
 - Apply preprocessing techniques including speckle filtering
@@ -13,7 +13,7 @@ A Python tool for fetching and analyzing Synthetic Aperture Radar (SAR) data fro
 - Visualize results with original data, processed data, and detected features
 
 
-## How to obtain API_KEY from cosmos
+## How to obtain API_KEY from copernicus
 ``` bash
 export KEYCLOAK_TOKEN=$(curl -s -X POST -H "Content-Type: application/x-www-form-urlencoded" \
   --data 'client_id=<client_id>' \
@@ -21,10 +21,6 @@ export KEYCLOAK_TOKEN=$(curl -s -X POST -H "Content-Type: application/x-www-form
   --data 'grant_type=client_credentials' \
   'https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token' | jq -r .access_token)
 ```
-
-## How to obtain API_KEY from copernicus
-Read this guide https://www.asi.it/scienze-della-terra/cosmo-skymed/ 
-Just if you are an organization can obtain the token
 
 ## Installation
 You can use setup.py 
@@ -108,7 +104,7 @@ The default coordinates are set to the Giza Plateau in Egypt, which is known for
 
 ## Notes
 
-- You need if use COSMO-SkyMed satellite data [COSMO-SkyMed](https://registration.cosmo-skymed.it/UMUsers/UserRegistration.html)
+
 - You need a registered account at the [Copernicus Open Access Hub](https://dataspace.copernicus.eu/)
 - The script downloads SAR data which can be large files (several GB)
 - Processing SAR data is computationally intensive and may take time depending on your hardware
