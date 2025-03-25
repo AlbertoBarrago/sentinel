@@ -43,3 +43,6 @@ coverage/
 
 #pyChace
 __pycache__
+
+#build 
+sentinel_sar.egg-info

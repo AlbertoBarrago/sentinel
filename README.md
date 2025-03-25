@@ -13,6 +13,14 @@ A Python tool for fetching and analyzing Synthetic Aperture Radar (SAR) data fro
 - Visualize results with original data, processed data, and detected features
 
 ## Installation
+You can use setup.py 
+```bash
+python setup.py install
+```
+or
+```bash
+pip install -r requirements.txt
+```
 
 ### Prerequisites
 

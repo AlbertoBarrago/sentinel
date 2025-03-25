@@ -8,7 +8,12 @@ Author: Alberto Barrago
 
 import datetime
 import logging
+
+from dotenv import load_dotenv
 from sentinel_sar.analyzer import SARAnalyzer
+import os
+
+load_dotenv()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -21,7 +26,10 @@ def main():
     logger.info("\n=== SAR Data Analysis Tool ===")
     logger.info("This tool fetches and analyzes SAR data to detect potential subsurface features.")
     
-    analyzer = SARAnalyzer()
+    analyzer = SARAnalyzer(
+        client_id=os.getenv('CLIENT_ID'),
+        client_secret=os.getenv('CLIENT_SECRET')
+    )
     
     # Default coordinates (Giza, Egypt)
     giza_coords = {
@@ -50,7 +58,7 @@ def main():
         start_date = input(f"Start date [{one_year_ago.strftime('%Y%m%d')}]: ") or one_year_ago.strftime('%Y%m%d')
         end_date = input(f"End date [{today.strftime('%Y%m%d')}]: ") or today.strftime('%Y%m%d')
         
-        # Ask for data source
+        # Ask for a data source
         data_source = input("Data source (sentinel/cosmo) [sentinel]: ").lower() or "sentinel"
         
         logger.info("\nStarting analysis...")

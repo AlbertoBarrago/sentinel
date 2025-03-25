@@ -3,82 +3,114 @@ Authentication functions for Sentinel and COSMO-SkyMed APIs.
 """
 
 import logging
-from getpass import getpass
 import requests
 from sentinelsat import SentinelAPI
+import os
+from dotenv import load_dotenv
 
+
+load_dotenv()
 logger = logging.getLogger(__name__)
 
-def authenticate(analyzer, api_url: str = 'https://apihub.copernicus.eu/apihub') -> bool:
+def authenticate_copernicus(analyzer, api_url: str = os.getenv('COPERNICUS_API_URL') or 'https://apihub.copernicus.eu/apihub') -> bool:
     """Authenticate with the Copernicus Data Space Ecosystem or Open Access Hub."""
     try:
-        # Check if we're using the new CDSE API
-        if 'dataspace.copernicus.eu' in api_url or 'catalogue.dataspace.copernicus.eu' in api_url:
-            if not analyzer.client_id:
-                analyzer.client_id = input("Enter your Copernicus Data Space client ID: ")
-            if not analyzer.client_secret:
-                analyzer.client_secret = getpass("Enter your Copernicus Data Space client secret: ")
+        if 'copernicus.eu/apihub' in api_url:
+            if not analyzer.client_id or analyzer.client_id == 'your-client-id':
+                logger.error("Invalid client ID. Please update your .env file with valid credentials")
+                return False
+            if not analyzer.client_secret or analyzer.client_secret == 'your-client-secret':
+                logger.error("Invalid client secret. Please update your .env file with valid credentials")
+                return False
+                
+            credentials = (analyzer.client_id, analyzer.client_secret)
+            logger.info("Using CDSE authentication")
             
-            logger.info(f"Attempting to authenticate with CDSE at {api_url}")
-            # For CDSE, we use the client_id as username and client_secret as password
-            analyzer.api = SentinelAPI(
-                analyzer.client_id,
-                analyzer.client_secret,
-                api_url
-            )
-        else:
-            # Traditional username/password for older APIs
-            if not analyzer.username:
-                analyzer.username = input("Enter your Copernicus username: ")
-            if not analyzer.password:
-                analyzer.password = getpass("Enter your Copernicus password: ")
-            
+        else: 
+            if not analyzer.username or analyzer.username == 'your-username':
+                logger.error("Invalid username. Please update your .env file with valid credentials")
+                return False
+            if not analyzer.password or analyzer.password == 'your-password':
+                logger.error("Invalid password. Please update your .env file with valid credentials")
+                return False
+                
+            credentials = (analyzer.username, analyzer.password)
+            logger.info("Using traditional API authentication")
+
+        # Test connection and credentials
+        try:
             logger.info(f"Attempting to authenticate with {api_url}")
-            analyzer.api = SentinelAPI(
-                analyzer.username, 
-                analyzer.password, 
-                api_url
-            )
-        return True
+            analyzer.api = SentinelAPI(*credentials, api_url)
+            
+            logger.info("Authentication successful!")
+            return True
+            
+        except requests.exceptions.ConnectionError:
+            logger.error(f"Could not connect to {api_url}. Please check your internet connection.")
+            return False
+        except requests.exceptions.HTTPError as e:
+            if '401' in str(e):
+                logger.error("Authentication failed: Invalid credentials")
+            elif '403' in str(e):
+                logger.error("Authentication failed: Access forbidden")
+            else:
+                logger.error(f"HTTP Error: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Authentication error: {e}")
+            return False
+            
     except Exception as e:
-        logger.error(f"Authentication failed: {e}")
-        logger.info("Note: For the new Copernicus Data Space Ecosystem, you need to register at https://dataspace.copernicus.eu/ and create API credentials")
+        logger.error(f"Setup error: {e}")
         return False
 
 def authenticate_cosmo(analyzer, api_url: str = 'https://api.registration.cosmo-skymed.it/auth/login') -> bool:
     """Authenticate with the COSMO-SkyMed data portal."""
     try:
-        if not analyzer.cosmo_username:
-            analyzer.cosmo_username = input("Enter your COSMO-SkyMed username: ")
-        if not analyzer.cosmo_password:
-            analyzer.cosmo_password = getpass("Enter your COSMO-SkyMed password: ")
+        # Validate credentials
+        if not analyzer.cosmo_username or analyzer.cosmo_username == 'your-cosmo-username':
+            logger.error("Invalid COSMO-SkyMed username. Please update your .env file")
+            return False
+        if not analyzer.cosmo_password or analyzer.cosmo_password == 'your-cosmo-password':
+            logger.error("Invalid COSMO-SkyMed password. Please update your .env file")
+            return False
         
-        logger.info(f"Attempting to authenticate with COSMO-SkyMed at {api_url}")
+        logger.info(f"Attempting to authenticate with COSMO-SkyMed")
         
-        # Create the authentication payload
-        payload = {
-            "username": analyzer.cosmo_username,
-            "password": analyzer.cosmo_password
-        }
-        
-        # Make the authentication request
-        response = requests.post(api_url, json=payload)
-        
-        if response.status_code == 200:
+        try:
+            response = requests.post(
+                api_url,
+                json={
+                    "username": analyzer.cosmo_username,
+                    "password": analyzer.cosmo_password
+                },
+                timeout=30
+            )
+            
+            response.raise_for_status()  # Raise exception for bad status codes
+            
             auth_data = response.json()
-            analyzer.cosmo_api_token = auth_data.get('token')
-            if analyzer.cosmo_api_token:
-                logger.info("Successfully authenticated with COSMO-SkyMed")
-                return True
-            else:
-                logger.error("Authentication response did not contain a token")
+            if not auth_data.get('token'):
+                logger.error("No authentication token received")
                 return False
-        else:
-            logger.error(f"Authentication failed with status code: {response.status_code}")
-            logger.error(f"Response: {response.text}")
+                
+            analyzer.cosmo_api_token = auth_data['token']
+            logger.info("Successfully authenticated with COSMO-SkyMed")
+            return True
+            
+        except requests.exceptions.ConnectionError:
+            logger.error("Could not connect to COSMO-SkyMed API. Please check your internet connection.")
+            return False
+        except requests.exceptions.Timeout:
+            logger.error("Connection timed out. Please try again.")
+            return False
+        except requests.exceptions.HTTPError as e:
+            logger.error(f"Authentication failed: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Authentication error: {e}")
             return False
             
     except Exception as e:
-        logger.error(f"COSMO-SkyMed authentication failed: {e}")
-        logger.info("Note: You need to register at https://registration.cosmo-skymed.it/ to access COSMO-SkyMed data")
+        logger.error(f"Setup error: {e}")
         return False
