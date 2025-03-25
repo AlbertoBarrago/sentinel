@@ -43,9 +43,12 @@ class SARAnalyzer:
         """Create an Area of Interest (AOI) from coordinates."""
         return create_aoi_from_coordinates(self, min_lon, min_lat, max_lon, max_lat)
     
-    def search_sar_data(self, footprint: str, start_date: str, end_date: str, platform_name: str = 'Sentinel-1') -> Dict:
+    def search_sar_data(self, footprint: str, start_date: str, end_date: str, 
+                       platform_name: str = 'Sentinel-1', orbit_direction: str = 'ASCENDING',
+                       sensor_mode: str = 'IW') -> Dict:
         """Search for SAR data within the specified parameters."""
-        return search_sar_data(self, footprint, start_date, end_date, platform_name)
+        return search_sar_data(self, footprint, start_date, end_date, platform_name, 
+                              orbit_direction, sensor_mode)
     
 
     
@@ -83,7 +86,8 @@ class SARAnalyzer:
         max_lat: float,
         start_date: str,
         end_date: str,
-        data_source: str = 'sentinel'
+        orbit_direction: str = 'ASCENDING',
+        sensor_mode: str = 'IW'
     ) -> bool:
         """Complete workflow to analyze an area of interest."""
         try:
@@ -95,7 +99,15 @@ class SARAnalyzer:
             if not self.authenticate():
                 return False
             
-            products = self.search_sar_data(footprint, start_date, end_date)
+            # Pass the additional parameters to the search function
+            products = self.search_sar_data(
+                footprint, 
+                start_date, 
+                end_date,
+                orbit_direction=orbit_direction,
+                sensor_mode=sensor_mode
+            )
+            
             if not products:
                 logger.warning("No products found for the specified parameters.")
                 return False

@@ -38,7 +38,9 @@ def create_aoi_from_coordinates(analyzer, min_lon: float, min_lat: float, max_lo
         logger.error(f"Error creating AOI: {e}")
         return ""
 
-def search_sar_data(analyzer, footprint: str, start_date: str, end_date: str, platform_name: str = 'Sentinel-1') -> Dict:
+def search_sar_data(analyzer, footprint: str, start_date: str, end_date: str, 
+                   platform_name: str = 'Sentinel-1', orbit_direction: str = 'ASCENDING',
+                   sensor_mode: str = 'IW') -> Dict:
     """Search for SAR data within the specified parameters."""
     try:
         # Check if API token is available
@@ -53,17 +55,15 @@ def search_sar_data(analyzer, footprint: str, start_date: str, end_date: str, pl
         # Use the correct OpenSearch API endpoint
         search_url = "https://catalogue.dataspace.copernicus.eu/resto/api/collections/Sentinel1/search.json"
         
-        # Create the search parameters
+        # Create the search parameters with correct parameter names
         params = {
-            'q': '*',
-            'platform': platform_name,
             'productType': 'SLC',
             'geometry': footprint,
             'startDate': f'{start.isoformat()}',
             'completionDate': f'{end.isoformat()}',
-            'sortParam': 'startDate',
-            'sortOrder': 'descending',
-            'maxRecords': 100
+            'orbitDirection': orbit_direction,
+            'sensorMode': sensor_mode,
+            'status': 'ONLINE',
         }
         
         # Set up headers with the token
@@ -86,6 +86,10 @@ def search_sar_data(analyzer, footprint: str, start_date: str, end_date: str, pl
             analyzer.products = products_data.get('features', [])
             logger.info(f"Found {len(analyzer.products)} products")
             return analyzer.products
+        elif response.status_code == 400:
+            logger.error(f"Bad request (400): {response.json().get('detail', {}).get('ErrorMessage', 'Unknown error')}")
+            logger.error(f"Response: {response.text}")
+            return {}
         elif response.status_code == 403:
             logger.error("Authentication failed (403 Forbidden). Your token may be invalid or expired.")
             logger.error(f"Response: {response.text}")
@@ -115,33 +119,65 @@ def download_products(analyzer, limit: int = 1) -> List[str]:
             logger.error("API not authenticated. Call authenticate() first.")
             return []
             
-        # Sort products by ingestion date
-        products_df = analyzer.api.to_dataframe(analyzer.products)
-        products_df_sorted = products_df.sort_values('ingestiondate', ascending=False)
-        
-        # Select the most recent products up to the limit
-        products_to_download = products_df_sorted.head(limit)
-        product_ids = products_to_download.index.tolist()
-        
-        # Download the products
-        downloaded_products = analyzer.api.download_all(
-            product_ids,
-            directory_path=str(analyzer.download_path)
+        # The products are now in a different format from the RESTO API
+        # Sort products by ingestion date if available
+        sorted_products = sorted(
+            analyzer.products,
+            key=lambda x: x.get('properties', {}).get('published', ''),
+            reverse=True
         )
         
-        # Extract the actual file paths from the downloaded products
+        # Select the most recent products up to the limit
+        products_to_download = sorted_products[:limit]
+        
         file_paths = []
-        # Handle the ResultTuple object correctly
-        for product_info in downloaded_products:
-            if hasattr(product_info, 'path') and os.path.exists(product_info.path):
-                file_paths.append(product_info.path)
-                logger.info(f"Successfully downloaded: {product_info.path}")
-            else:
-                logger.warning(f"Could not find path for product")
+        for product in products_to_download:
+            try:
+                # Get product ID and download URL
+                product_id = product.get('id')
+                product_title = product.get('properties', {}).get('title')
+                
+                if not product_id:
+                    logger.warning(f"Could not find ID for product: {product_title}")
+                    continue
+                
+                # Construct download URL
+                download_url = f"https://catalogue.dataspace.copernicus.eu/resto/collections/Sentinel1/{product_id}/download"
+                
+                # Set up headers with the token
+                headers = {
+                    'Authorization': f'Bearer {analyzer.api}',
+                    'Accept': 'application/json'
+                }
+                
+                logger.info(f"Downloading product: {product_title}")
+                
+                # Make the download request
+                response = requests.get(download_url, headers=headers, stream=True)
+                
+                if response.status_code == 200:
+                    # Create a file path
+                    file_path = analyzer.download_path / f"{product_title}.zip"
+                    
+                    # Download the file
+                    with open(file_path, 'wb') as f:
+                        for chunk in response.iter_content(chunk_size=8192):
+                            if chunk:
+                                f.write(chunk)
+                    
+                    logger.info(f"Successfully downloaded: {file_path}")
+                    file_paths.append(str(file_path))
+                else:
+                    logger.error(f"Download failed with status code: {response.status_code}")
+                    logger.error(f"Response: {response.text}")
+            
+            except Exception as e:
+                logger.error(f"Error downloading product {product.get('properties', {}).get('title')}: {e}")
         
         return file_paths
     except Exception as e:
         logger.error(f"Error downloading products: {e}")
+        logger.debug(f"Detailed error: {traceback.format_exc()}")
         return []
 
 
