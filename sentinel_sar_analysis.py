@@ -2,22 +2,8 @@
 """
 Sentinel SAR Data Analysis Tool
 
-Disclaimer: Work in progress...
-
-This script fetches and analyzes Synthetic Aperture Radar (SAR) data from Copernicus
-using the sentinelsat library. It allows for data acquisition based on coordinates,
-processing the imagery using rasterio, and applying signal processing techniques
-to detect subsurface anomalies.
-
-Requirements:
-    - sentinelsat
-    - rasterio 
-    - numpy
-    - matplotlib
-    - scipy
-
+This script is a work in progress and is not yet complete. It is intended to be used as a tool for analyzing Sentinel SAR data.
 Author: Alberto Barrago
-Date: 2025-05-24
 """
 
 import datetime
