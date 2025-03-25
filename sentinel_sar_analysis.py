@@ -58,10 +58,14 @@ def main():
         start_date = input(f"Start date [{one_year_ago.strftime('%Y%m%d')}]: ") or one_year_ago.strftime('%Y%m%d')
         end_date = input(f"End date [{today.strftime('%Y%m%d')}]: ") or today.strftime('%Y%m%d')
         
-        # Ask for a data source
-        data_source = input("Data source (sentinel/cosmo) [sentinel]: ").lower() or "sentinel"
+        # Ask for orbit direction
+        orbit_direction = input("Orbit direction (ASCENDING/DESCENDING) [ASCENDING]: ").upper() or "ASCENDING"
+        
+        # Ask for sensor mode
+        sensor_mode = input("Sensor mode (IW/EW/SM/WV) [IW]: ").upper() or "IW"
         
         logger.info("\nStarting analysis...")
+        # In the main function, make sure the analyze_area call matches the method definition
         if analyzer.analyze_area(
             coords['min_lon'],
             coords['min_lat'],
@@ -69,7 +73,8 @@ def main():
             coords['max_lat'],
             start_date,
             end_date,
-            data_source
+            orbit_direction=orbit_direction,
+            sensor_mode=sensor_mode
         ):
             logger.info("\nAnalysis completed successfully!")
             logger.info(f"Results saved to {analyzer.download_path / 'sar_analysis_results.png'}")
