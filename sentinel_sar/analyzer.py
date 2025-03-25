@@ -6,7 +6,7 @@ from typing import Optional, Dict, List, Any
 import logging
 from pathlib import Path
 
-from sentinel_sar.auth import authenticate_copernicus, authenticate_cosmo
+from sentinel_sar.auth import authenticate, authenticate_cosmo
 from sentinel_sar.processing import (
     create_aoi_from_coordinates,
     search_sar_data,
@@ -40,9 +40,9 @@ class SARAnalyzer:
         self.download_path = Path.cwd() / 'data'
         self.download_path.mkdir(exist_ok=True)
     
-    def authenticate(self, api_url: str = 'https://apihub.copernicus.eu/apihub') -> bool:
+    def authenticate(self, api_url: str = 'https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token') -> bool:
         """Authenticate with the Copernicus Data Space Ecosystem or Open Access Hub."""
-        return authenticate_copernicus(self, api_url)
+        return authenticate(self, api_url)
     
     def authenticate_cosmo(self, api_url: str = 'https://api.registration.cosmo-skymed.it/auth/login') -> bool:
         """Authenticate with the COSMO-SkyMed data portal."""
@@ -79,8 +79,9 @@ class SARAnalyzer:
     def preprocess_sar_data(self, file_path: str) -> Optional[Any]:
         """Preprocess the SAR data for analysis."""
         return preprocess_sar_data(self, file_path)
-    
-    def detect_subsurface_features(self, sar_data: Any, threshold: float = 0.7) -> Optional[Any]:
+
+    @staticmethod
+    def detect_subsurface_features(sar_data: Any, threshold: float = 0.7) -> Optional[Any]:
         """Detect potential subsurface features in the SAR data."""
         return detect_subsurface_features(sar_data, threshold)
     

@@ -51,7 +51,7 @@ def search_sar_data(analyzer, footprint: str, start_date: str, end_date: str, pl
         end = datetime.datetime.strptime(end_date, '%Y%m%d').date()
         
         # Log connection attempt
-        logger.info(f"Attempting to connect to Copernicus Open Access Hub at {analyzer.api.api_url}")
+        logger.info(f"Attempting to connect to Copernicus Open Access Hub at {analyzer.api}")
         logger.info(f"Search parameters: footprint={footprint[:50]}..., date=({start} to {end}), platform={platform_name}")
         
         # Search for products

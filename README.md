@@ -12,6 +12,20 @@ A Python tool for fetching and analyzing Synthetic Aperture Radar (SAR) data fro
 - Detect potential subsurface features using edge detection and morphological operations
 - Visualize results with original data, processed data, and detected features
 
+
+## How to obtain API_KEY from cosmos
+``` bash
+export KEYCLOAK_TOKEN=$(curl -s -X POST -H "Content-Type: application/x-www-form-urlencoded" \
+  --data 'client_id=<client_id>' \
+  --data 'client_secret=<client_secret>' \
+  --data 'grant_type=client_credentials' \
+  'https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token' | jq -r .access_token)
+```
+
+## How to obtain API_KEY from copernicus
+Read this guide https://www.asi.it/scienze-della-terra/cosmo-skymed/ 
+Just if you are an organization can obtain the token
+
 ## Installation
 You can use setup.py 
 ```bash
