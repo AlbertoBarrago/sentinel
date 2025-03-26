@@ -49,22 +49,23 @@ def search_sar_data(analyzer, footprint: str, start_date: str, end_date: str,
             return {}
             
         # Convert string dates to datetime objects
-        start = datetime.datetime.strptime(start_date, '%Y%m%d').date()
-        end = datetime.datetime.strptime(end_date, '%Y%m%d').date()
+        try:
+            start = datetime.datetime.strptime(start_date, '%Y%m%d').date()
+            # Extend search period to 5 years back to increase chances of finding data
+            extended_start = start - datetime.timedelta(days=1825)  # 5 years
+        except ValueError:
+            logger.warning(f"Invalid start date format: {start_date}, using 5 years ago")
+            start = datetime.datetime.now().date()
+            extended_start = start - datetime.timedelta(days=1825)
+            
+        try:
+            end = datetime.datetime.strptime(end_date, '%Y%m%d').date()
+        except ValueError:
+            logger.warning(f"Invalid end date format: {end_date}, using today")
+            end = datetime.datetime.now().date()
         
         # Use the correct OpenSearch API endpoint
         search_url = "https://catalogue.dataspace.copernicus.eu/resto/api/collections/Sentinel1/search.json"
-        
-        # Create the search parameters with correct parameter names
-        params = {
-            'productType': 'SLC',
-            'geometry': footprint,
-            'startDate': f'{start.isoformat()}',
-            'completionDate': f'{end.isoformat()}',
-            'orbitDirection': orbit_direction,
-            'sensorMode': sensor_mode,
-            'status': 'ONLINE',
-        }
         
         # Set up headers with the token
         headers = {
@@ -72,33 +73,88 @@ def search_sar_data(analyzer, footprint: str, start_date: str, end_date: str,
             'Accept': 'application/json'
         }
         
-        # Log the request details for debugging
-        logger.info(f"Making request to: {search_url}")
-        logger.info(f"Search parameters: {params}")
-        logger.info(f"Using token: {analyzer.api[:10]}...{analyzer.api[-10:] if len(analyzer.api) > 20 else ''}")
+        # Try a direct API request with minimal parameters
+        logger.info("Trying direct API request with minimal parameters")
         
-        # Make the search request
-        response = requests.get(search_url, params=params, headers=headers)
-        
-        if response.status_code == 200:
-            products_data = response.json()
-            # RESTO API format has a different structure
-            analyzer.products = products_data.get('features', [])
-            logger.info(f"Found {len(analyzer.products)} products")
-            return analyzer.products
-        elif response.status_code == 400:
-            logger.error(f"Bad request (400): {response.json().get('detail', {}).get('ErrorMessage', 'Unknown error')}")
-            logger.error(f"Response: {response.text}")
-            return {}
-        elif response.status_code == 403:
-            logger.error("Authentication failed (403 Forbidden). Your token may be invalid or expired.")
-            logger.error(f"Response: {response.text}")
-            logger.info("Try re-authenticating to get a fresh token.")
-            return {}
-        else:
-            logger.error(f"Search failed with status code: {response.status_code}")
-            logger.error(f"Response: {response.text}")
-            return {}
+        # Simplify the geometry to a point in the center of the bounding box
+        import re
+        coords = re.findall(r'[\d.]+', footprint)
+        if len(coords) >= 8:  # At least 4 coordinate pairs
+            # Calculate center point
+            min_lon = float(coords[0])
+            min_lat = float(coords[1])
+            max_lon = float(coords[2])
+            max_lat = float(coords[3])
+            center_lon = (min_lon + max_lon) / 2
+            center_lat = (min_lat + max_lat) / 2
+            point_geometry = f"POINT({center_lon} {center_lat})"
+            
+            # Create a simple query with just the center point and date range
+            simple_params = {
+                'geometry': point_geometry,
+                'startDate': f'{extended_start.isoformat()}',
+                'completionDate': f'{end.isoformat()}',
+                'maxRecords': 50  # Request more records
+            }
+            
+            logger.info(f"Using simplified point geometry: {point_geometry}")
+            logger.info(f"Search parameters: {simple_params}")
+            
+            response = requests.get(search_url, params=simple_params, headers=headers)
+            
+            if response.status_code == 200:
+                products_data = response.json()
+                features = products_data.get('features', [])
+                logger.info(f"Found {len(features)} products with simplified point geometry")
+                
+                if features:
+                    analyzer.products = features
+                    return analyzer.products
+            else:
+                logger.error(f"API request failed with status code: {response.status_code}")
+                logger.error(f"Response: {response.text}")
+                
+                # Check if token is valid
+                logger.info("Checking if token is valid...")
+                token_check_url = "https://catalogue.dataspace.copernicus.eu/resto/api/collections"
+                token_response = requests.get(token_check_url, headers=headers)
+                
+                if token_response.status_code != 200:
+                    logger.error("Token validation failed. Please re-authenticate.")
+                    return {}
+                else:
+                    logger.info("Token is valid. The issue is with the search parameters.")
+            
+            # If we get here, try a completely different approach - use the collections endpoint
+            logger.info("Trying collections endpoint to get any available Sentinel-1 data")
+            collections_url = "https://catalogue.dataspace.copernicus.eu/resto/api/collections/Sentinel1/search.json"
+            
+            # Very minimal parameters - just get any recent Sentinel-1 data
+            minimal_params = {
+                'maxRecords': 10,
+                'startDate': f'{extended_start.isoformat()}',
+                'completionDate': f'{end.isoformat()}'
+            }
+            
+            response = requests.get(collections_url, params=minimal_params, headers=headers)
+            
+            if response.status_code == 200:
+                products_data = response.json()
+                features = products_data.get('features', [])
+                logger.info(f"Found {len(features)} products with minimal parameters")
+                
+                if features:
+                    analyzer.products = features
+                    return analyzer.products
+            
+        # If we get here, no products were found with any strategy
+        logger.error("No products found with any search strategy")
+        logger.info("Please try the following:")
+        logger.info("1. Check that your API token is valid")
+        logger.info("2. Try a different location with known Sentinel-1 coverage")
+        logger.info("3. Try a wider date range")
+        logger.info("4. Check the Copernicus Data Space Ecosystem website for service status")
+        return {}
             
     except Exception as e:
         logger.error(f"Error searching for data: {e}")

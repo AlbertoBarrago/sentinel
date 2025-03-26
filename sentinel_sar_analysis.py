@@ -31,18 +31,72 @@ def main():
         client_secret=os.getenv('CLIENT_SECRET')
     )
     
-    # Default coordinates (Giza, Egypt)
-    giza_coords = {
-        'min_lon': 31.0,
-        'min_lat': 29.9,
-        'max_lon': 31.2,
-        'max_lat': 30.1
+    # Predefined locations with good SAR coverage
+    locations = {
+        "giza": {
+            'name': "Giza, Egypt",
+            'min_lon': 31.0,
+            'min_lat': 29.9,
+            'max_lon': 31.2,
+            'max_lat': 30.1
+        },
+        "venice": {
+            'name': "Venice, Italy",
+            'min_lon': 12.2,
+            'min_lat': 45.4,
+            'max_lon': 12.4,
+            'max_lat': 45.5
+        },
+        "amazon": {
+            'name': "Amazon Rainforest",
+            'min_lon': -60.0,
+            'min_lat': -3.0,
+            'max_lon': -59.8,
+            'max_lat': -2.8
+        },
+        "alps": {
+            'name': "Swiss Alps",
+            'min_lon': 8.0,
+            'min_lat': 46.5,
+            'max_lon': 8.2,
+            'max_lat': 46.7
+        },
+        "netherlands": {
+            'name': "Netherlands (Rotterdam)",
+            'min_lon': 4.4,
+            'min_lat': 51.9,
+            'max_lon': 4.5,
+            'max_lat': 52.0
+        },
+        "san_francisco": {
+            'name': "San Francisco Bay Area",
+            'min_lon': -122.5,
+            'min_lat': 37.7,
+            'max_lon': -122.3,
+            'max_lat': 37.9
+        }
     }
+    
+    # Display available locations
+    logger.info("\nAvailable locations:")
+    for key, loc in locations.items():
+        logger.info(f"  {key}: {loc['name']}")
+    
+    # Get location choice
+    while True:
+        location_choice = input("\nSelect location (giza/venice/amazon/alps) [giza]: ").lower() or "giza"
+        if location_choice in locations:
+            selected_location = locations[location_choice]
+            logger.info(f"Selected location: {selected_location['name']}")
+            break
+        else:
+            logger.error("Invalid location. Please select from the available options.")
     
     try:
         # Get coordinates with validation
         coords = {}
-        for key, default in giza_coords.items():
+        for key in ['min_lon', 'min_lat', 'max_lon', 'max_lat']:
+            default = selected_location[key]
             while True:
                 try:
                     value = input(f"{key} [{default}]: ").strip() or default
@@ -53,9 +107,9 @@ def main():
         
         # Get date range
         today = datetime.datetime.now()
-        one_year_ago = today - datetime.timedelta(days=365)
+        three_years_ago = today - datetime.timedelta(days=1095)  # 3 years for better data availability
         
-        start_date = input(f"Start date [{one_year_ago.strftime('%Y%m%d')}]: ") or one_year_ago.strftime('%Y%m%d')
+        start_date = input(f"Start date [{three_years_ago.strftime('%Y%m%d')}]: ") or three_years_ago.strftime('%Y%m%d')
         end_date = input(f"End date [{today.strftime('%Y%m%d')}]: ") or today.strftime('%Y%m%d')
         
         # Ask for orbit direction
