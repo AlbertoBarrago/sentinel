@@ -2,7 +2,9 @@
 """
 Sentinel SAR Data Analysis Tool
 
-This script is a work in progress and is not yet complete. It is intended to be used as a tool for analyzing Sentinel SAR data.
+This tool fetches and analyzes Sentinel SAR data to detect potential subsurface features.
+Or better trying to do it :)
+
 Author: Alberto Barrago
 """
 
